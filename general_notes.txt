@@ -1,0 +1,67 @@
+The Elasticsearch services uses a Query DSL (Domain Specific Language) based on the JSON format to define queries.
+- https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html
+
+There are multiple types of queries available in Query DSL.
+    - Match Query: https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.
+    e.g. used in the Elasticsearch API console: https://www.elastic.co/guide/en/cloud/current/ec-api-console.html
+        GET /_search
+        {
+        "query": {
+            "match": {
+            "name": {
+                "query": "search text here"
+            }
+            }
+        }
+        }
+
+    e.g. with python code:
+        es.search(
+        query={
+            'match': {
+                'name': {
+                    'query': 'search text here'
+                        }
+                    }
+                }
+            )
+
+--Compound Queries allow two or more queries to be combined so they can execute together, and
+if appropriate return a combined set of results. The standard way to create compound queries
+in Elasticsearch is to use a Boolean query.
+    A boolean query acts as a wrapper for two or more individual queries or clauses. There are four different ways to combine queries:
+
+    - bool.must: the clause must match. If multiple clauses are given, 
+    all must match (similar to an AND logical operation).
+    - bool.should: when used without must, at least one clause should match 
+    (similar to an OR logical operation). 
+    When combined with must each matching clause boosts the relevance score of the document.
+    - bool.filter: only documents that match the clause(s) 
+    are considered search result candidates.
+    - bool.must_not: only documents that do not match the clause(s) are 
+    considered search result candidates.
+
+    To a add a filter that restricts the search to a specific category, the query must be exapnded as follows:
+    {
+    'bool': {
+        'must': [{     # We're using bool.must here.
+            'multi_match': {   # The query type is here.
+                'query': "query text here",
+                'fields': ['name', 'summary', 'content'],
+            }
+        }],
+        'filter': [{
+            'term': {    # The term query performs an exact search for the a value in a given field. This type of query is useful to search for identifiers, labels, tags, or as in this case, categories.
+                'category.keyword': {
+                    'value': "category to filter"
+                    }
+                }
+            }]
+        }
+    }
+
+
+Term Aggregations
+    In Elasticsearch faceted search is implemented using the aggregations feature. 
+    One of the supported aggregations divides the search results in buckets, based on some criteria.
+    A criteria can be a keyword.
