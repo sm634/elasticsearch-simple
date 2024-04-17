@@ -65,3 +65,44 @@ Term Aggregations
     In Elasticsearch faceted search is implemented using the aggregations feature. 
     One of the supported aggregations divides the search results in buckets, based on some criteria.
     A criteria can be a keyword.
+
+
+VECTOR SEARCH
+    - knn: 
+
+
+HYBRID SEARCH
+    - Uses Reciprocal rank fusion: https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html
+
+
+SEMANTIC SEARCH
+    - The ELSER model users sparse vectors, as opposed to the dense vectors used for Vector search.
+        - Tutorial: https://www.elastic.co/guide/en/elasticsearch/reference/current/semantic-search-elser.html
+    
+HYBRID SEARCH: COMBINED FULL-TEXT AND ELSER results
+    - The reciprocal rank fusion is used to score
+        - https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html
+
+    - The complication that is presented when trying to do the same to combine 
+    full-text and sparse vector search requests is that both use the query argument. 
+    To be able to provide the two queries that need to be combined with the RRF algorithm, 
+    it is necessary to include two query arguments, and the solution to do this is to do it with Sub-Searches.
+        - Sub-searches: https://www.elastic.co/guide/en/elasticsearch/reference/8.13/search-search.html#request-body-sub-searches
+    
+    - The sub_searhes argument can be used to send multiple search queries as follows: 
+    results = es.search(
+                    sub_searches=[
+                        {
+                            'query': { ... },  # full-text search
+                        },
+                        {
+                            'query': { ... },  # semantic search
+                        },
+                    ],
+                    rank={
+                        'rrf': {},  # combine sub-search results
+                    },
+                    aggs={ ... },
+                    size=5,
+                    from_=from_,
+                    )
